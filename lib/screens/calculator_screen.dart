@@ -16,6 +16,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool _isMonthly = true;
   double _windowPercent = 15;
   Climate _climate = Climate.moderate;
+  int _yearsSlider = 10; // 1–30 for long-term savings view
 
   static String _formatCurrency(double value) {
     if (value.isNaN || value.isInfinite) return r'$0';
@@ -57,20 +58,30 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final billAmount = _parseDouble(_billController.text);
     final projectCost = _parseDouble(_projectCostController.text);
     final annualBill = CalculatorLogic.getAnnualBill(billAmount, _isMonthly);
-    final annualSavings = CalculatorLogic.getAnnualSavings(annualBill, _windowPercent, _climate);
-    final paybackYears = CalculatorLogic.getPaybackYears(projectCost, annualSavings);
+    final annualSavings = CalculatorLogic.getAnnualSavings(
+      annualBill,
+      _windowPercent,
+      _climate,
+    );
+    final paybackYears = CalculatorLogic.getPaybackYears(
+      projectCost,
+      annualSavings,
+    );
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Window Replacement ROI'),
-      ),
+      appBar: AppBar(title: const Text('Window Replacement ROI')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding + 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Bill amount + Monthly/Annual
-            Text('Heating/cooling bill', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              'Heating/cooling bill',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,7 +90,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   flex: 2,
                   child: TextField(
                     controller: _billController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                     ],
@@ -108,7 +121,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             const SizedBox(height: 24),
 
             // Window % slider
-            Text('Bill from windows: ${_windowPercent.round()}%', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              'Bill from windows: ${_windowPercent.round()}%',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             Slider(
               value: _windowPercent,
               min: 5,
@@ -122,7 +138,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             // Project cost
             TextField(
               controller: _projectCostController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
               ],
@@ -135,7 +153,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             const SizedBox(height: 24),
 
             // Climate
-            Text('Climate / region', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              'Climate / region',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             SegmentedButton<Climate>(
               segments: const [
@@ -164,7 +185,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _formatCurrency(annualSavings),
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
                             color: Theme.of(context).colorScheme.primary,
                           ),
                     ),
@@ -179,6 +201,73 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 ),
               ),
             ),
+
+            /// Bottom section "Payback"
+            const SizedBox(height: 32),
+
+            // Payback & long-term savings section
+            Text(
+              'Payback & long-term savings',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (annualSavings > 0 && paybackYears != null) ...[
+                      Text(
+                        'Payback in ${paybackYears.toStringAsFixed(1)} years.',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Total savings by year $_yearsSlider: ${_formatCurrency(annualSavings * _yearsSlider)}',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Slider(
+                        value: _yearsSlider.toDouble(),
+                        min: 1,
+                        max: 30,
+                        divisions: 29,
+                        label: '$_yearsSlider years',
+                        onChanged: (value) =>
+                            setState(() => _yearsSlider = value.round()),
+                      ),
+                      if (_yearsSlider >= paybackYears)
+                        Text(
+                          'Project cost covered by year ${paybackYears.ceil()}.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ] else ...[
+                      Text(
+                        'Payback: —',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Enter bill, project cost, and window % to see payback and total savings.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'Based on typical efficiency gains from new windows.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
