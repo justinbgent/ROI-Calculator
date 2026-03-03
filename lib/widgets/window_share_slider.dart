@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WindowShareSlider extends StatelessWidget {
-  const WindowShareSlider({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const WindowShareSlider({super.key, required this.value, required this.onChanged});
 
   final double value;
   final ValueChanged<double> onChanged;
@@ -16,7 +12,7 @@ class WindowShareSlider extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Bill from windows: ${value.round()}%',
+          'Percent of bill attributed to windows: ${value.round()}%',
           style: Theme.of(context).textTheme.titleSmall,
         ),
         Slider(

@@ -52,62 +52,53 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final billAmount = _parseDouble(_billController.text);
     final projectCost = _parseDouble(_projectCostController.text);
     final annualBill = CalculatorLogic.getAnnualBill(billAmount, _isMonthly);
-    final annualSavings = CalculatorLogic.getAnnualSavings(
-      annualBill,
-      _windowPercent,
-      _climate,
-    );
-    final paybackYears = CalculatorLogic.getPaybackYears(
-      projectCost,
-      annualSavings,
-    );
+    final annualSavings = CalculatorLogic.getAnnualSavings(annualBill, _windowPercent, _climate);
+    final paybackYears = CalculatorLogic.getPaybackYears(projectCost, annualSavings);
+    final bottomContentPadding = screenPadding + gapLarge;
 
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       appBar: AppBar(title: const Text('Window Replacement ROI')),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(
-          screenPadding,
-          screenPadding,
-          screenPadding,
-          screenPadding + bottomPadding + gapLarge,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            BillInputSection(
-              controller: _billController,
-              isMonthly: _isMonthly,
-              onIsMonthlyChanged: (value) => setState(() => _isMonthly = value),
+      body: SafeArea(
+        bottom: true,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(screenPadding).copyWith(bottom: bottomContentPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                BillInputSection(
+                  controller: _billController,
+                  isMonthly: _isMonthly,
+                  onIsMonthlyChanged: (value) => setState(() => _isMonthly = value),
+                ),
+                SizedBox(height: gapLarge),
+                WindowShareSlider(
+                  value: _windowPercent,
+                  onChanged: (value) => setState(() => _windowPercent = value),
+                ),
+                SizedBox(height: gapMedium),
+                ProjectCostField(controller: _projectCostController),
+                SizedBox(height: gapLarge),
+                ClimateSelector(
+                  value: _climate,
+                  onChanged: (value) => setState(() => _climate = value),
+                ),
+                SizedBox(height: gapXLarge),
+                AnnualSavingsCard(annualSavings: annualSavings, paybackYears: paybackYears),
+                SizedBox(height: gapXLarge),
+                PaybackAndLongTermCard(
+                  annualSavings: annualSavings,
+                  paybackYears: paybackYears,
+                  yearsSlider: _yearsSlider,
+                  onYearsSliderChanged: (value) => setState(() => _yearsSlider = value),
+                ),
+                SizedBox(height: gapLarge),
+              ],
             ),
-            SizedBox(height: gapLarge),
-            WindowShareSlider(
-              value: _windowPercent,
-              onChanged: (value) => setState(() => _windowPercent = value),
-            ),
-            SizedBox(height: gapMedium),
-            ProjectCostField(controller: _projectCostController),
-            SizedBox(height: gapLarge),
-            ClimateSelector(
-              value: _climate,
-              onChanged: (value) => setState(() => _climate = value),
-            ),
-            SizedBox(height: gapXLarge),
-            AnnualSavingsCard(
-              annualSavings: annualSavings,
-              paybackYears: paybackYears,
-            ),
-            SizedBox(height: gapXLarge),
-            PaybackAndLongTermCard(
-              annualSavings: annualSavings,
-              paybackYears: paybackYears,
-              yearsSlider: _yearsSlider,
-              onYearsSliderChanged: (value) =>
-                  setState(() => _yearsSlider = value),
-            ),
-            SizedBox(height: gapLarge),
-          ],
+          ),
         ),
       ),
     );

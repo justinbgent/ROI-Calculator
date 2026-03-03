@@ -23,10 +23,7 @@ class PaybackAndLongTermCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Payback & long-term savings',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Payback & long-term savings', style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: gapTight),
         Card(
           child: Padding(
@@ -42,9 +39,9 @@ class PaybackAndLongTermCard extends StatelessWidget {
                   SizedBox(height: gapMedium),
                   Text(
                     'Total savings by year $yearsSlider: ${formatCurrency(annualSavings * yearsSlider)}',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
                   ),
                   SizedBox(height: gapSmall),
                   Slider(
@@ -53,8 +50,7 @@ class PaybackAndLongTermCard extends StatelessWidget {
                     max: 30,
                     divisions: 29,
                     label: '$yearsSlider years',
-                    onChanged: (value) =>
-                        onYearsSliderChanged(value.round()),
+                    onChanged: (value) => onYearsSliderChanged(value.round()),
                   ),
                   if (yearsSlider >= paybackYears!)
                     Text(
@@ -62,10 +58,7 @@ class PaybackAndLongTermCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                 ] else ...[
-                  Text(
-                    'Payback: —',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+                  Text('Payback: —', style: Theme.of(context).textTheme.bodyLarge),
                   SizedBox(height: gapSmall),
                   Text(
                     'Enter bill, project cost, and window % to see payback and total savings.',
@@ -76,9 +69,9 @@ class PaybackAndLongTermCard extends StatelessWidget {
                 Text(
                   'Based on typical efficiency gains from new windows.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
             ),
