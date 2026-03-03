@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:roi_calculator/constants/app_spacing.dart';
 import 'package:roi_calculator/logic/calculator_logic.dart';
+import 'package:roi_calculator/widgets/annual_savings_card.dart';
+import 'package:roi_calculator/widgets/bill_input_section.dart';
+import 'package:roi_calculator/widgets/climate_selector.dart';
+import 'package:roi_calculator/widgets/payback_and_long_term_card.dart';
+import 'package:roi_calculator/widgets/project_cost_field.dart';
+import 'package:roi_calculator/widgets/window_share_slider.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -16,19 +22,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool _isMonthly = true;
   double _windowPercent = 15;
   Climate _climate = Climate.moderate;
-  int _yearsSlider = 10; // 1–30 for long-term savings view
-
-  static String _formatCurrency(double value) {
-    if (value.isNaN || value.isInfinite) return r'$0';
-    final int v = value.round();
-    final s = v.abs().toString();
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-      buf.write(s[i]);
-    }
-    return '${v < 0 ? '-' : ''}\$$buf';
-  }
+  int _yearsSlider = 10;
 
   @override
   void initState() {
@@ -73,201 +67,46 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       appBar: AppBar(title: const Text('Window Replacement ROI')),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding + 24),
+        padding: EdgeInsets.fromLTRB(
+          screenPadding,
+          screenPadding,
+          screenPadding,
+          screenPadding + bottomPadding + gapLarge,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Bill amount + Monthly/Annual
-            Text(
-              'Heating/cooling bill',
-              style: Theme.of(context).textTheme.titleSmall,
+            BillInputSection(
+              controller: _billController,
+              isMonthly: _isMonthly,
+              onIsMonthlyChanged: (value) => setState(() => _isMonthly = value),
             ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _billController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      border: OutlineInputBorder(),
-                      hintText: '0',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: true, label: Text('Monthly')),
-                      ButtonSegment(value: false, label: Text('Annual')),
-                    ],
-                    selected: {_isMonthly},
-                    onSelectionChanged: (Set<bool> selected) {
-                      setState(() => _isMonthly = selected.first);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Window % slider
-            Text(
-              'Bill from windows: ${_windowPercent.round()}%',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Slider(
+            SizedBox(height: gapLarge),
+            WindowShareSlider(
               value: _windowPercent,
-              min: 5,
-              max: 50,
-              divisions: 45,
-              label: '${_windowPercent.round()}%',
               onChanged: (value) => setState(() => _windowPercent = value),
             ),
-            const SizedBox(height: 16),
-
-            // Project cost
-            TextField(
-              controller: _projectCostController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-              ],
-              decoration: const InputDecoration(
-                labelText: 'One-time project cost',
-                border: OutlineInputBorder(),
-                hintText: '0',
-              ),
+            SizedBox(height: gapMedium),
+            ProjectCostField(controller: _projectCostController),
+            SizedBox(height: gapLarge),
+            ClimateSelector(
+              value: _climate,
+              onChanged: (value) => setState(() => _climate = value),
             ),
-            const SizedBox(height: 24),
-
-            // Climate
-            Text(
-              'Climate / region',
-              style: Theme.of(context).textTheme.titleSmall,
+            SizedBox(height: gapXLarge),
+            AnnualSavingsCard(
+              annualSavings: annualSavings,
+              paybackYears: paybackYears,
             ),
-            const SizedBox(height: 8),
-            SegmentedButton<Climate>(
-              segments: const [
-                ButtonSegment(value: Climate.cold, label: Text('Cold')),
-                ButtonSegment(value: Climate.moderate, label: Text('Moderate')),
-                ButtonSegment(value: Climate.hot, label: Text('Hot')),
-              ],
-              selected: {_climate},
-              onSelectionChanged: (Set<Climate> selected) {
-                setState(() => _climate = selected.first);
-              },
+            SizedBox(height: gapXLarge),
+            PaybackAndLongTermCard(
+              annualSavings: annualSavings,
+              paybackYears: paybackYears,
+              yearsSlider: _yearsSlider,
+              onYearsSliderChanged: (value) =>
+                  setState(() => _yearsSlider = value),
             ),
-            const SizedBox(height: 32),
-
-            // Result card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Estimated annual savings',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _formatCurrency(annualSavings),
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
-                    if (annualSavings > 0 && paybackYears != null) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'Payback: ~${paybackYears.toStringAsFixed(1)} years',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            /// Bottom section "Payback"
-            const SizedBox(height: 32),
-
-            // Payback & long-term savings section
-            Text(
-              'Payback & long-term savings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (annualSavings > 0 && paybackYears != null) ...[
-                      Text(
-                        'Payback in ${paybackYears.toStringAsFixed(1)} years.',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Total savings by year $_yearsSlider: ${_formatCurrency(annualSavings * _yearsSlider)}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Slider(
-                        value: _yearsSlider.toDouble(),
-                        min: 1,
-                        max: 30,
-                        divisions: 29,
-                        label: '$_yearsSlider years',
-                        onChanged: (value) =>
-                            setState(() => _yearsSlider = value.round()),
-                      ),
-                      if (_yearsSlider >= paybackYears)
-                        Text(
-                          'Project cost covered by year ${paybackYears.ceil()}.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                    ] else ...[
-                      Text(
-                        'Payback: —',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Enter bill, project cost, and window % to see payback and total savings.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    Text(
-                      'Based on typical efficiency gains from new windows.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+            SizedBox(height: gapLarge),
           ],
         ),
       ),
