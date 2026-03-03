@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:roi_calculator/constants/app_spacing.dart';
 import 'package:roi_calculator/utils/format_helpers.dart';
 
-class PaybackAndLongTermCard extends StatelessWidget {
+class PaybackAndLongTermCard extends StatefulWidget {
   const PaybackAndLongTermCard({
     super.key,
     required this.annualSavings,
@@ -17,13 +17,99 @@ class PaybackAndLongTermCard extends StatelessWidget {
   final ValueChanged<int> onYearsSliderChanged;
 
   @override
+  State<PaybackAndLongTermCard> createState() => _PaybackAndLongTermCardState();
+}
+
+class _PaybackAndLongTermCardState extends State<PaybackAndLongTermCard> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    final hasValidPayback = annualSavings > 0 && paybackYears != null;
+    final hasValidPayback = widget.annualSavings > 0 && widget.paybackYears != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Payback & long-term savings', style: Theme.of(context).textTheme.titleMedium),
+        _PaybackHeader(
+          expanded: _expanded,
+          onToggle: () => setState(() => _expanded = !_expanded),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _expanded
+              ? _PaybackContent(
+                  hasValidPayback: hasValidPayback,
+                  annualSavings: widget.annualSavings,
+                  paybackYears: widget.paybackYears,
+                  yearsSlider: widget.yearsSlider,
+                  onYearsSliderChanged: widget.onYearsSliderChanged,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaybackHeader extends StatelessWidget {
+  const _PaybackHeader({
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onToggle,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Payback & long-term savings',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            AnimatedRotation(
+              turns: expanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.expand_more, size: 24),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PaybackContent extends StatelessWidget {
+  const _PaybackContent({
+    required this.hasValidPayback,
+    required this.annualSavings,
+    required this.paybackYears,
+    required this.yearsSlider,
+    required this.onYearsSliderChanged,
+  });
+
+  final bool hasValidPayback;
+  final double annualSavings;
+  final double? paybackYears;
+  final int yearsSlider;
+  final ValueChanged<int> onYearsSliderChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
         SizedBox(height: gapTight),
         Card(
           child: Padding(
@@ -39,9 +125,9 @@ class PaybackAndLongTermCard extends StatelessWidget {
                   SizedBox(height: gapMedium),
                   Text(
                     'Total savings by year $yearsSlider: ${formatCurrency(annualSavings * yearsSlider)}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                   SizedBox(height: gapSmall),
                   Slider(
@@ -58,7 +144,10 @@ class PaybackAndLongTermCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                 ] else ...[
-                  Text('Payback: —', style: Theme.of(context).textTheme.bodyLarge),
+                  Text(
+                    'Payback: —',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                   SizedBox(height: gapSmall),
                   Text(
                     'Enter bill, project cost, and window % to see payback and total savings.',
@@ -69,9 +158,9 @@ class PaybackAndLongTermCard extends StatelessWidget {
                 Text(
                   'Based on typical efficiency gains from new windows.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
                 ),
               ],
             ),
