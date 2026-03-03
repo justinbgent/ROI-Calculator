@@ -1,11 +1,7 @@
 // Pure calculation logic for window replacement savings & ROI.
 // Savings factors by climate are tunable here.
 
-enum Climate {
-  cold,
-  moderate,
-  hot,
-}
+enum Climate { cold, moderate, hot }
 
 abstract class CalculatorLogic {
   CalculatorLogic._();
@@ -37,11 +33,7 @@ abstract class CalculatorLogic {
   /// [annualBill] = full annual heating/cooling bill,
   /// [windowPercent] = 0..100 (percentage attributed to windows),
   /// [climate] = region for savings factor.
-  static double getAnnualSavings(
-    double annualBill,
-    double windowPercent,
-    Climate climate,
-  ) {
+  static double getAnnualSavings(double annualBill, double windowPercent, Climate climate) {
     if (annualBill <= 0 || windowPercent <= 0) return 0;
     final windowPortion = annualBill * (windowPercent / 100);
     return windowPortion * _savingsFactorFor(climate);

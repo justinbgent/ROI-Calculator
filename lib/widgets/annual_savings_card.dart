@@ -3,11 +3,7 @@ import 'package:roi_calculator/constants/app_spacing.dart';
 import 'package:roi_calculator/utils/format_helpers.dart';
 
 class AnnualSavingsCard extends StatelessWidget {
-  const AnnualSavingsCard({
-    super.key,
-    required this.annualSavings,
-    this.paybackYears,
-  });
+  const AnnualSavingsCard({super.key, required this.annualSavings, this.paybackYears});
 
   final double annualSavings;
   final double? paybackYears;
@@ -20,16 +16,13 @@ class AnnualSavingsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Estimated annual savings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Estimated annual savings', style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: gapSmall),
             Text(
               formatCurrency(annualSavings),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
             ),
             if (annualSavings > 0 && paybackYears != null) ...[
               SizedBox(height: gapMedium),

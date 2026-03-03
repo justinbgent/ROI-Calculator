@@ -19,37 +19,32 @@ class BillInputSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Heating/cooling bill',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Heating/cooling bill', style: Theme.of(context).textTheme.titleSmall),
         SizedBox(height: gapSmall),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 2,
+              flex: 3,
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                ],
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
                 decoration: const InputDecoration(
                   labelText: 'Amount',
                   border: OutlineInputBorder(),
                   hintText: '0',
+                  prefixText: r'$ ',
                 ),
               ),
             ),
             SizedBox(width: gapTight),
             Expanded(
+              flex: 2,
               child: SegmentedButton<bool>(
                 segments: const [
-                  ButtonSegment(value: true, label: Text('Monthly')),
-                  ButtonSegment(value: false, label: Text('Annual')),
+                  ButtonSegment(value: true, label: Text('Mo')),
+                  ButtonSegment(value: false, label: Text('Yr')),
                 ],
                 selected: {isMonthly},
                 onSelectionChanged: (Set<bool> selected) {
