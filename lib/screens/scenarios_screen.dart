@@ -12,9 +12,7 @@ class ScenariosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final repo = ScenariosRepository();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My scenarios'),
-      ),
+      appBar: AppBar(title: const Text('My scenarios')),
       body: StreamBuilder<List<Scenario>>(
         stream: repo.watchScenarios(),
         builder: (context, snapshot) {
@@ -22,10 +20,7 @@ class ScenariosScreen extends StatelessWidget {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(screenPadding),
-                child: Text(
-                  'Error: ${snapshot.error}',
-                  textAlign: TextAlign.center,
-                ),
+                child: Text('Error: ${snapshot.error}', textAlign: TextAlign.center),
               ),
             );
           }
@@ -60,7 +55,7 @@ class ScenariosScreen extends StatelessWidget {
               final paybackYears = CalculatorLogic.getPaybackYears(s.projectCost, annualSavings);
               final subtitle = paybackYears != null
                   ? 'Payback: ${paybackYears.toStringAsFixed(1)} yr · ${formatCurrency(annualSavings)}/yr'
-                  : formatCurrency(annualSavings) + '/yr';
+                  : '${formatCurrency(annualSavings)}/yr';
               return Card(
                 child: ListTile(
                   title: Text(s.name),
@@ -91,10 +86,7 @@ class ScenariosScreen extends StatelessWidget {
         title: const Text('Delete scenario?'),
         content: Text('This will remove "${scenario.name}".'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
@@ -107,15 +99,15 @@ class ScenariosScreen extends StatelessWidget {
       try {
         await repo.deleteScenario(scenario.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Scenario deleted')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Scenario deleted')));
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not delete: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Could not delete: $e')));
         }
       }
     }

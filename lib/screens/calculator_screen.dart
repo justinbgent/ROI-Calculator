@@ -35,6 +35,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     super.initState();
     _billController.addListener(_onInputChanged);
     _projectCostController.addListener(_onInputChanged);
+    // Load initial scenario if passed in, otherwise defaults will load.
     final initial = widget.initialScenario;
     if (initial != null) {
       _loadScenario(initial);
@@ -71,9 +72,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Future<void> _openScenarios() async {
     final scenario = await Navigator.push<Scenario?>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ScenariosScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ScenariosScreen()),
     );
     if (scenario != null && mounted) {
       _loadScenario(scenario);
@@ -99,15 +98,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         yearsSlider: _yearsSlider,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved "$name"')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved "$name"')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not save: $e')));
       }
     }
   }
@@ -212,19 +207,12 @@ class _SaveScenarioDialogState extends State<_SaveScenarioDialog> {
       title: const Text('Save scenario'),
       content: TextField(
         controller: _nameController,
-        decoration: const InputDecoration(
-          labelText: 'Name',
-          hintText: 'e.g. Home 2024',
-        ),
+        decoration: const InputDecoration(labelText: 'Name', hintText: 'e.g. Home 2024'),
         autofocus: true,
-        onSubmitted: (value) =>
-            Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
+        onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         FilledButton(
           onPressed: () {
             final name = _nameController.text.trim();
