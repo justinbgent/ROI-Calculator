@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:roi_calculator/constants/app_spacing.dart';
 import 'package:roi_calculator/logic/calculator_logic.dart';
+import 'package:roi_calculator/models/scenario.dart';
+import 'package:roi_calculator/screens/scenarios_screen.dart';
+import 'package:roi_calculator/services/scenarios_repository.dart';
 import 'package:roi_calculator/widgets/annual_savings_card.dart';
 import 'package:roi_calculator/widgets/bill_input_section.dart';
 import 'package:roi_calculator/widgets/climate_selector.dart';
@@ -9,7 +12,9 @@ import 'package:roi_calculator/widgets/project_cost_field.dart';
 import 'package:roi_calculator/widgets/window_share_slider.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+  const CalculatorScreen({super.key, this.initialScenario});
+
+  final Scenario? initialScenario;
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -18,6 +23,7 @@ class CalculatorScreen extends StatefulWidget {
 class _CalculatorScreenState extends State<CalculatorScreen> {
   final _billController = TextEditingController();
   final _projectCostController = TextEditingController();
+  final _scenariosRepo = ScenariosRepository();
 
   bool _isMonthly = true;
   double _windowPercent = 15;
@@ -29,6 +35,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     super.initState();
     _billController.addListener(_onInputChanged);
     _projectCostController.addListener(_onInputChanged);
+    final initial = widget.initialScenario;
+    if (initial != null) {
+      _loadScenario(initial);
+    }
+  }
+
+  void _loadScenario(Scenario s) {
+    _billController.text = s.billAmount > 0 ? s.billAmount.toString() : '';
+    _projectCostController.text = s.projectCost > 0 ? s.projectCost.toString() : '';
+    setState(() {
+      _isMonthly = s.isMonthly;
+      _windowPercent = s.windowPercent;
+      _climate = s.climate;
+      _yearsSlider = s.yearsSlider;
+    });
   }
 
   void _onInputChanged() => setState(() {});
@@ -47,6 +68,78 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return double.tryParse(cleaned) ?? 0;
   }
 
+  Future<void> _openScenarios() async {
+    final scenario = await Navigator.push<Scenario?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ScenariosScreen(),
+      ),
+    );
+    if (scenario != null && mounted) {
+      _loadScenario(scenario);
+    }
+  }
+
+  Future<void> _showSaveDialog() async {
+    final nameController = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Save scenario'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              hintText: 'e.g. Home 2024',
+            ),
+            autofocus: true,
+            onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                Navigator.pop(context, name.isEmpty ? null : name);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    nameController.dispose();
+    if (name == null || !mounted) return;
+    final billAmount = _parseDouble(_billController.text);
+    final projectCost = _parseDouble(_projectCostController.text);
+    try {
+      await _scenariosRepo.addScenario(
+        name: name,
+        billAmount: billAmount,
+        isMonthly: _isMonthly,
+        windowPercent: _windowPercent,
+        projectCost: projectCost,
+        climate: _climate,
+        yearsSlider: _yearsSlider,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved "$name"')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final billAmount = _parseDouble(_billController.text);
@@ -57,7 +150,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final bottomContentPadding = screenPadding + gapLarge;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Window Replacement ROI')),
+      appBar: AppBar(
+        title: const Text('Window Replacement ROI'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: _openScenarios,
+            tooltip: 'My scenarios',
+          ),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _showSaveDialog,
+            tooltip: 'Save scenario',
+          ),
+        ],
+      ),
       body: SafeArea(
         bottom: true,
         child: GestureDetector(
