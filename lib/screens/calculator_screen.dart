@@ -81,38 +81,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   Future<void> _showSaveDialog() async {
-    final nameController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Save scenario'),
-          content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'e.g. Home 2024',
-            ),
-            autofocus: true,
-            onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                Navigator.pop(context, name.isEmpty ? null : name);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+      builder: (dialogContext) => const _SaveScenarioDialog(),
     );
-    nameController.dispose();
     if (name == null || !mounted) return;
     final billAmount = _parseDouble(_billController.text);
     final projectCost = _parseDouble(_projectCostController.text);
@@ -208,6 +180,59 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SaveScenarioDialog extends StatefulWidget {
+  const _SaveScenarioDialog();
+
+  @override
+  State<_SaveScenarioDialog> createState() => _SaveScenarioDialogState();
+}
+
+class _SaveScenarioDialogState extends State<_SaveScenarioDialog> {
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Save scenario'),
+      content: TextField(
+        controller: _nameController,
+        decoration: const InputDecoration(
+          labelText: 'Name',
+          hintText: 'e.g. Home 2024',
+        ),
+        autofocus: true,
+        onSubmitted: (value) =>
+            Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            Navigator.pop(context, name.isEmpty ? null : name);
+          },
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }

@@ -1,0 +1,30 @@
+{
+    "flutter":
+    {
+        "platforms":
+        {
+            "android":
+            {
+                "default":
+                {
+                    "projectId":"roi-calculator-890c9",
+                    "appId":"1:579481459140:android:72b88563a6968d0e5eac91",
+                    "fileOutput":"android/app/google-services.json"
+                }
+            },
+            "dart":
+            {
+                "lib/firebase_options.dart":
+                {
+                    "projectId":"roi-calculator-890c9",
+                    "configurations":
+                    {
+                        "android":"1:579481459140:android:72b88563a6968d0e5eac91",
+                        "ios":"1:579481459140:ios:9f981862a698d6655eac91",
+                        "web":"1:579481459140:web:2c538c2980285c9e5eac91"
+                    }
+                }
+            }
+        }
+    }
+}
